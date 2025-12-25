@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Compute tag
+        id: meta
+        run: echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: '~> v2'
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  changelog:
+    needs: [ 'release' ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fetch tags
+        run: git fetch --force --tags
+
+      - name: Extract release notes from github release
+        id: release_notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          body="$(gh release view "$TAG" --json body -q .body)"
+          
+          cleaned="$(printf '%s\n' "$body" | perl -0777 -pe 's/\A##\s+Changelog\s*\n+//')"
+          
+          echo "notes<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$cleaned" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Extract release date from git tag
+        id: release_date
+        env:
+          TAG: ${{ needs.release.outputs.tag }}
+        run: |
+          echo "date=$(git log -1 --date=short --format=%ad "$TAG")" >> $GITHUB_OUTPUT;
+
+      - name: Update Changelog
+        uses: stefanzweifel/changelog-updater-action@v1
+        with:
+          release-date: ${{ steps.release_date.outputs.date }}
+          release-notes: ${{ steps.release_notes.outputs.notes }}
+          latest-version: ${{ needs.release.outputs.tag }}
+          parse-github-usernames: true
+
+      - name: Commit updated Changelog
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          branch: main
+          commit_message: 'chore: Update CHANGELOG for ${{ needs.release.outputs.tag }}'
+          file_pattern: CHANGELOG.md
+          commit_user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_user_name: 'github-actions[bot]'
+          commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'

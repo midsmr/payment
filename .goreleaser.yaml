@@ -1,0 +1,65 @@
+version: 2
+
+project_name: payment
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: payment_core
+    main: ./cmd/payment_core
+    binary: payment_core
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/midsmr/payment/internal/payment_core/application.CoreVersion={{ .Tag }}
+      - -X github.com/midsmr/payment/internal/payment_core/application.LastCommit={{ .ShortCommit }}
+      - -X github.com/midsmr/payment/internal/payment_core/application.BuildDate={{ .Date }}
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+archives:
+  - id: archives
+    formats: ["tar.gz"]
+    format_overrides:
+      - goos: windows
+        formats: ["zip"]
+    name_template: "{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+changelog:
+  use: github
+  sort: asc
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\(.+\))?!?:.+$'
+      order: 0
+    - title: Bug fixes
+      regexp: '^.*?fix(\(.+\))?!?:.+$'
+      order: 1
+    - title: Other changes
+      order: 999
+  format: "{{ .Message }} ({{ with .AuthorUsername }}@{{ . }}{{ else }}{{ .AuthorName }} <{{ .AuthorEmail }}>{{ end }})"
+
+release:
+  draft: false
+  prerelease: auto
+  target_commitish: "{{ .Commit }}"
+  name_template: "{{ .Tag }}"
+
+
