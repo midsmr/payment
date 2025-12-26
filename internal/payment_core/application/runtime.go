@@ -4,7 +4,7 @@ import (
 	"github.com/midsmr/payment/pkg/payment_logger"
 )
 
-var RootPath string
+var Workdir string
 
 var Logger = payment_logger.NewConsoleLogger()
 

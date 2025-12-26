@@ -9,7 +9,7 @@ import (
 
 func Init() error {
 
-	if err := initRootPath(); err != nil {
+	if err := initWorkdir(); err != nil {
 		return err
 	}
 
@@ -17,24 +17,24 @@ func Init() error {
 		return err
 	}
 
-	Logger.Info("Application running in root path: " + RootPath)
+	Logger.Info("Application running in root path: " + Workdir)
 
 	Logger.Info("Application initialized successfully.")
 
 	return nil
 }
 
-func initRootPath() error {
+func initWorkdir() error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	RootPath = cwd
+	Workdir = cwd
 	return nil
 }
 
 func initLogger() error {
-	path := filepath.Join(RootPath, "logs")
+	path := filepath.Join(Workdir, "logs")
 
 	log, err := payment_logger.Init(path)
 
