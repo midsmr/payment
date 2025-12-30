@@ -17,7 +17,7 @@ func Init() error {
 		return err
 	}
 
-	Logger.Info("Application running in root path: " + Workdir)
+	Logger.Info("Application running in workdir: " + Workdir)
 
 	Logger.Info("Application initialized successfully.")
 
