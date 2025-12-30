@@ -8,7 +8,7 @@ before:
 
 builds:
   - id: payment_core
-    main: ./cmd/payment_core
+    main: ./payment_core.go
     binary: payment_core
     flags:
       - -trimpath
