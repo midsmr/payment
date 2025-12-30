@@ -25,11 +25,23 @@ func Init() error {
 }
 
 func initWorkdir() error {
-	cwd, err := os.Getwd()
+	// 使用 Workdir 的值（默认为 "." 或从 cobra 命令行接收）
+	var absPath string
+	var err error
+
+	// 如果 Workdir 为 "."，则使用当前工作目录
+	if Workdir == "." {
+		absPath, err = os.Getwd()
+	} else {
+		// 否则将提供的路径转换为绝对路径
+		absPath, err = filepath.Abs(Workdir)
+	}
+
 	if err != nil {
 		return err
 	}
-	Workdir = cwd
+
+	Workdir = absPath
 	return nil
 }
 
