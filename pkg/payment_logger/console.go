@@ -8,16 +8,16 @@ import (
 )
 
 func NewConsoleLogger() *zap.Logger {
-	return zap.New(newConsoleCore(), zap.AddCaller())
+	return zap.New(NewConsoleCore(), zap.AddCaller())
 }
 
-func newConsoleCore() zapcore.Core {
+func NewConsoleCore() zapcore.Core {
 	encoderCfg := zapcore.EncoderConfig{
-		TimeKey:        "ts",
+		TimeKey:        "time",
 		LevelKey:       "level",
 		NameKey:        "logger",
 		CallerKey:      "caller",
-		MessageKey:     "msg",
+		MessageKey:     "message",
 		StacktraceKey:  "stack",
 		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeLevel:    zapcore.CapitalColorLevelEncoder,

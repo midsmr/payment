@@ -6,18 +6,18 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func newFileCore(path string) (zapcore.Core, error) {
+func NewFileCore(path string) (zapcore.Core, error) {
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, err
 	}
 
 	encoderCfg := zapcore.EncoderConfig{
-		TimeKey:        "ts",
+		TimeKey:        "time",
 		LevelKey:       "level",
 		NameKey:        "logger",
 		CallerKey:      "caller",
-		MessageKey:     "msg",
+		MessageKey:     "message",
 		StacktraceKey:  "stack",
 		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeLevel:    zapcore.CapitalLevelEncoder,
